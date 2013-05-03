@@ -3,24 +3,9 @@ Twitter Bootstrap Typeahead Plugin Extension
 
 * * *
 
-**UPDATE (Feb 21, 2013)**
-
-I no longer have the time to maintain this plugin.  If you are looking for updated code, please take a look at the following to help you:
-
-- [Groups Branch](https://github.com/tcrosen/twitter-bootstrap-typeahead/tree/groups)
-
-- [2.0 Branch](https://github.com/tcrosen/twitter-bootstrap-typeahead/tree/2.0)
-
-- [Twitter's new advanced Typeahead](https://github.com/twitter/typeahead.js) - *Not associated with Bootstrap*
-
+This is a fork of Terry Rosen's type ahead extension for bootstrap. I had a requirement for displaying a nested submenu with
+type ahead feature. So i modified this plugin(A lot...) to get my functionality to work.
 * * *
-
-v1.2.2<br />
-Terry Rosen [@rerrify](https://twitter.com/#!/rerrify)
-
-An extension of the Twitter Bootstrap Typeahead plugin<br />
-<http://twitter.github.com/bootstrap/javascript.html#typeahead>
-
 About
 -----------------
 All the thanks in the world to [@mdo](https://twitter.com/#!/mdo) and [@fat](https://twitter.com/#!/fat) of [@twitter](https://twitter.com/) for the wonderful Bootstrap utility.<br />
@@ -301,49 +286,3 @@ Or using a remote data source:
     $('#myElement').typeahead({
         ajax: '/path/to/mySource'
     });
-
-Examples demonstrating various options are included in this project under the `/demo` folder
-
-Why did you change so much from v1.0 to v1.1?
------------------
-I found certain things to be redundant, like having separate sort and display properties.  I can't think of a reasonable scenerio where you would be sorting based on something different than what you are displaying.
-
-What the $#&* did you do to the source code?
------------------
-I added comments, semi-colons and other formatting that I like to use based on [idiomatic JS guidelines](https://github.com/rwldrn/idiomatic.js).
-
-If you are concerned with the bigger file size, you should always be [minifying](http://en.wikipedia.org/wiki/Minification_\(programming\)) your JS before production use.
-
-Change Log
------------------
-
-**1.2.2**
-
-- Added support for jQuery 1.8 & Bootstrap 2.1
-- Removed usage of jQuery.browser [#9385](http://bugs.jquery.com/ticket/9385)
-- Changed jQuery.data() to jQuery._data() in order to make test suite operational [#11718](http://bugs.jquery.com/ticket/11718)
-- Added an undocumented function `eventSupported(eventName)` to verify browser support for `keydown` event.  You may override this function if you prefer to do this check another way.
-
-**1.2.1**
-
-- Some AJAX tests added
-- Added fix for spontaneous AJAX bug reported by users
-- `grepper` and `lookup` methods are now overridable
-
-**1.2**
-
-- Added AJAX support
-
-**1.1**
-
-- Major code cleanup
-- Test cases added
-- Documentation improvements
-
-
-Road Map
------------------
-
-**1.3**
-
-- Add template support

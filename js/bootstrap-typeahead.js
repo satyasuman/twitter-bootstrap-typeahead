@@ -1,47 +1,19 @@
-﻿//  ----------------------------------------------------------------------------
-//
-//  bootstrap-typeahead.js  
-//
-//  Twitter Bootstrap Typeahead Plugin
-//  v1.2.2
-//  https://github.com/tcrosen/twitter-bootstrap-typeahead
-//
-//
-//  Author
-//  ----------
-//  Terry Rosen
-//  tcrosen@gmail.com | @rerrify | github.com/tcrosen/
-//
-//
-//  Description
-//  ----------
-//  Custom implementation of Twitter's Bootstrap Typeahead Plugin
-//  http://twitter.github.com/bootstrap/javascript.html#typeahead
-//
-//
-//  Requirements
-//  ----------
-//  jQuery 1.7+
-//  Twitter Bootstrap 2.0+
-//
-//  ----------------------------------------------------------------------------
-
-!
-function ($) {
+﻿! function ($) {
 
     "use strict";
-
-    //------------------------------------------------------------------
-    //
-    //  Constructor
-    //
     var Typeahead = function (element, options) {
-        this.$element = $(element);
+
         this.options = $.extend(true, {}, $.fn.typeahead.defaults, options);
+        this.template = this.options.template;
+        this.$element = $(element);
+        this.$container = this.setup();
+        this.$element = this.$container.find('input[type=text]');
+        this.$button = this.$container.find('.dropdown-toggle');
+
         this.$menu = $(this.options.menu).appendTo('body');
         this.shown = false;
 
-        // Method overrides    
+        // Method overrides
         this.eventSupported = this.options.eventSupported || this.eventSupported;
         this.grepper = this.options.grepper || this.grepper;
         this.highlighter = this.options.highlighter || this.highlighter;
@@ -50,13 +22,15 @@ function ($) {
         this.render = this.options.render || this.render;
         this.select = this.options.select || this.select;
         this.sorter = this.options.sorter || this.sorter;
-        this.source = this.options.source || this.source;        
-                
+        this.source = this.options.source || this.source;
+
         if (!this.source.length) {
             var ajax = this.options.ajax;
 
             if (typeof ajax === 'string') {
-                this.ajax = $.extend({}, $.fn.typeahead.defaults.ajax, { url: ajax });
+                this.ajax = $.extend({}, $.fn.typeahead.defaults.ajax, {
+                    url: ajax
+                });
             } else {
                 this.ajax = $.extend({}, $.fn.typeahead.defaults.ajax, ajax);
             }
@@ -66,53 +40,39 @@ function ($) {
             }
         }
 
-        this.listen();        
+        this.listen();
     }
 
     Typeahead.prototype = {
 
         constructor: Typeahead,
 
-        //=============================================================================================================
-        //
-        //  Utils
-        //
-        //=============================================================================================================
-
-        //------------------------------------------------------------------
-        //
-        //  Check if an event is supported by the browser eg. 'keypress'
-        //  * This was included to handle the "exhaustive deprecation" of jQuery.browser in jQuery 1.8
-        //
-        eventSupported: function(eventName) {         
+        eventSupported: function (eventName) {
             var isSupported = (eventName in this.$element);
 
             if (!isSupported) {
-              this.$element.setAttribute(eventName, 'return;');
-              isSupported = typeof this.$element[eventName] === 'function';
+                this.$element.setAttribute(eventName, 'return;');
+                isSupported = typeof this.$element[eventName] === 'function';
             }
 
             return isSupported;
         },
-
-        //=============================================================================================================
-        //
-        //  AJAX
-        //
-        //=============================================================================================================
-
-        //------------------------------------------------------------------
-        //
-        //  Handle AJAX source 
-        //
-        ajaxer: function () { 
+        setup: function () {
+            var combobox = $(this.template);
+            this.containerID = "_".concat(this.$element.attr("id")).concat("_combobox");
+            combobox.attr('id', this.containerID);
+            this.$element.before(combobox);
+            this.$element.remove();
+            return combobox;
+        },
+        ajaxer: function () {
             var that = this,
                 query = that.$element.val();
-            
+
             if (query === that.query) {
                 return that;
             }
-    
+
             // Query changed
             that.query = query;
 
@@ -121,7 +81,7 @@ function ($) {
                 clearTimeout(that.ajax.timerId);
                 that.ajax.timerId = null;
             }
-            
+
             if (!query || query.length < that.ajax.triggerLength) {
                 // Cancel the ajax callback if in progress
                 if (that.ajax.xhr) {
@@ -132,42 +92,36 @@ function ($) {
 
                 return that.shown ? that.hide() : that;
             }
-                    
+
             // Query is good to send, set a timer
-            that.ajax.timerId = setTimeout(function() {
+            that.ajax.timerId = setTimeout(function () {
                 $.proxy(that.ajaxExecute(query), that)
             }, that.ajax.timeout);
-                    
+
             return that;
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Execute an AJAX request
-        //
-        ajaxExecute: function(query) {
+        ajaxExecute: function (query) {
             this.ajaxToggleLoadClass(true);
-            
+
             // Cancel last call if already in progress
             if (this.ajax.xhr) this.ajax.xhr.abort();
-            
-            var params = this.ajax.preDispatch ? this.ajax.preDispatch(query) : { query : query };
+
+            var params = this.ajax.preDispatch ? this.ajax.preDispatch(query) : {
+                query: query
+            };
             var jAjax = (this.ajax.method === "post") ? $.post : $.get;
             this.ajax.xhr = jAjax(this.ajax.url, params, $.proxy(this.ajaxLookup, this));
             this.ajax.timerId = null;
         },
-    
-        //------------------------------------------------------------------
-        //
-        //  Perform a lookup in the AJAX results
-        //
-        ajaxLookup: function (data) { 
+
+        ajaxLookup: function (data) {
             var items;
-            
+
             this.ajaxToggleLoadClass(false);
 
             if (!this.ajax.xhr) return;
-            
+
             if (this.ajax.preProcess) {
                 data = this.ajax.preProcess(data);
             }
@@ -176,7 +130,7 @@ function ($) {
             this.ajax.data = data;
 
             items = this.grepper(this.ajax.data);
-    
+
             if (!items || !items.length) {
                 return this.shown ? this.hide() : this;
             }
@@ -185,81 +139,54 @@ function ($) {
 
             return this.render(items.slice(0, this.options.items)).show();
         },
-        
-        //------------------------------------------------------------------
-        //
-        //  Toggle the loading class
-        //
+
+
         ajaxToggleLoadClass: function (enable) {
             if (!this.ajax.loadingClass) return;
             this.$element.toggleClass(this.ajax.loadingClass, enable);
         },
 
-        //=============================================================================================================
-        //
-        //  Data manipulation
-        //
-        //=============================================================================================================
-
-        //------------------------------------------------------------------
-        //
-        //  Search source
-        //
         lookup: function (event) {
             var that = this,
                 items;
 
             if (that.ajax) {
                 that.ajaxer();
-            }
-            else {
+            } else {
                 that.query = that.$element.val();
 
                 if (!that.query) {
                     return that.shown ? that.hide() : that;
                 }
-                
                 items = that.grepper(that.source);
-                
                 if (!items || !items.length) {
                     return that.shown ? that.hide() : that;
                 }
-
                 return that.render(items.slice(0, that.options.items)).show();
             }
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Filters relevent results 
-        //
-        grepper: function(data) {
+        grepper: function (data) {
             var that = this,
                 items;
 
-            if (data && data.length && !data[0].hasOwnProperty(that.options.display)) {                
+            if (data && data.length && !data[0].hasOwnProperty(that.options.display)) {
                 return null;
-            } 
-
+            }
             items = $.grep(data, function (item) {
                 return that.matcher(item[that.options.display], item);
             });
-
-            return this.sorter(items);                
+            return this.sorter(items);
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Looks for a match in the source
-        //
         matcher: function (item) {
-            return ~item.toLowerCase().indexOf(this.query.toLowerCase());
+            if (this.query == '*') {
+                return true;
+            } else {
+                return~ item.toLowerCase().indexOf(this.query.toLowerCase());
+            }
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Sorts the results
-        //
         sorter: function (items) {
             var that = this,
                 beginswith = [],
@@ -270,30 +197,18 @@ function ($) {
             while (item = items.shift()) {
                 if (!item[that.options.display].toLowerCase().indexOf(this.query.toLowerCase())) {
                     beginswith.push(item);
-                }
-                else if (~item[that.options.display].indexOf(this.query)) {
+                } else if (~item[that.options.display].indexOf(this.query)) {
                     caseSensitive.push(item);
-                }
-                else {
+                } else {
                     caseInsensitive.push(item);
                 }
             }
 
             return beginswith.concat(caseSensitive, caseInsensitive);
-        },       
+        },
 
-        //=============================================================================================================
-        //
-        //  DOM manipulation
-        //
-        //=============================================================================================================
-
-        //------------------------------------------------------------------
-        //
-        //  Shows the results list
-        //
         show: function () {
-            var pos = $.extend({}, this.$element.offset(), {
+            var pos = $.extend({}, this.$container.offset(), {
                 height: this.$element[0].offsetHeight
             });
 
@@ -308,60 +223,62 @@ function ($) {
             return this;
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Hides the results list
-        //
         hide: function () {
             this.$menu.hide();
             this.shown = false;
             return this;
         },
-        
-        //------------------------------------------------------------------
-        //
-        //  Highlights the match(es) within the results
-        //
+
         highlighter: function (item) {
             var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+            if (this.query === "*") {
+                return  item ;
+            }
             return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                return '<strong>' + match + '</strong>';
+                return  match ;
             });
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Renders the results list
-        //
         render: function (items) {
-            var that = this;
-
-            items = $(items).map(function (i, item) {
-                i = $(that.options.item).attr('data-value', item[that.options.val]);
-                i.find('a').html(that.highlighter(item[that.options.display], item));
-                return i[0];
-            });
-
-            items.first().addClass('active');
-            this.$menu.html(items);
+            items = this.menuItems(items);
+            this.$menu.html($(items));
+            this.$menu.attr('id',this.containerID.concat("_menu"));
+            this.$menu.css('width', this.$element.width() + 10);
             return this;
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Item is selected
-        //
+        menuItems: function (items) {
+            var that = this;
+            items = $(items).map(function (i, item) {
+                if (item["SubMenu"]) {
+                    i = $(that.options.submenu);
+                    i.attr('data-value', item[that.options.val]);
+                    i.attr('sub-menu', true);
+                    i.attr('display-value', item[that.options.display]);
+                    i.find('a').html(item[that.options.display]);
+                    i.find("ul.dropdown-menu").html(that.menuItems(item["SubMenu"]));
+                    return i[0];
+                } else {
+                    i = $(that.options.item).attr('data-value', item[that.options.val]);
+                    i.find('a').html(that.highlighter(item[that.options.display], item));
+                    return i[0];
+                }
+            });
+            return items;
+        },
+
         select: function () {
             var $selectedItem = this.$menu.find('.active');
-            this.$element.val($selectedItem.text()).change();
-            this.options.itemSelected($selectedItem, $selectedItem.attr('data-value'), $selectedItem.text());
+            if($selectedItem.attr('sub-menu')){
+                this.$element.val($selectedItem.attr('display-value')).change();
+                this.options.itemSelected($selectedItem, $selectedItem.attr('data-value'), $selectedItem.attr('display-value'));
+            } else{
+                this.$element.val($selectedItem.text()).change();
+                this.options.itemSelected($selectedItem, $selectedItem.attr('data-value'), $selectedItem.text());
+            }
             return this.hide();
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Selects the next result
-        //
         next: function (event) {
             var active = this.$menu.find('.active').removeClass('active');
             var next = active.next();
@@ -373,10 +290,6 @@ function ($) {
             next.addClass('active');
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Selects the previous result
-        //
         prev: function (event) {
             var active = this.$menu.find('.active').removeClass('active');
             var prev = active.prev();
@@ -388,46 +301,40 @@ function ($) {
             prev.addClass('active');
         },
 
-        //=============================================================================================================
-        //
-        //  Events
-        //
-        //=============================================================================================================
-
-        //------------------------------------------------------------------
-        //
-        //  Listens for user events
-        //
         listen: function () {
             this.$element.on('blur', $.proxy(this.blur, this))
-                         .on('keyup', $.proxy(this.keyup, this));
+                .on('keyup', $.proxy(this.keyup, this));
 
-    		if (this.eventSupported('keydown')) {
-				this.$element.on('keydown', $.proxy(this.keypress, this));
-			} else {
-				this.$element.on('keypress', $.proxy(this.keypress, this));
-			}
+            if (this.eventSupported('keydown')) {
+                this.$element.on('keydown', $.proxy(this.keypress, this));
+            } else {
+                this.$element.on('keypress', $.proxy(this.keypress, this));
+            }
 
             this.$menu.on('click', $.proxy(this.click, this))
-                      .on('mouseenter', 'li', $.proxy(this.mouseenter, this));
+                .on('mouseenter', 'li', $.proxy(this.mouseenter, this));
+            this.$button
+                .on('click', $.proxy(this.showDropDown, this))
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Handles a key being raised up
-        //
+        showDropDown: function () {
+            this.$element.val('*');
+            this.lookup('');
+            this.$element.val('');
+        },
+
         keyup: function (e) {
             e.stopPropagation();
             e.preventDefault();
 
             switch (e.keyCode) {
                 case 40:
-                    // down arrow
+                // down arrow
                 case 38:
                     // up arrow
                     break;
                 case 9:
-                    // tab
+                // tab
                 case 13:
                     // enter
                     if (!this.shown) {
@@ -444,10 +351,6 @@ function ($) {
             }
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Handles a key being pressed
-        //
         keypress: function (e) {
             e.stopPropagation();
             if (!this.shown) {
@@ -456,9 +359,9 @@ function ($) {
 
             switch (e.keyCode) {
                 case 9:
-                    // tab
+                // tab
                 case 13:
-                    // enter
+                // enter
                 case 27:
                     // escape
                     e.preventDefault();
@@ -476,45 +379,29 @@ function ($) {
             }
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Handles cursor exiting the textbox
-        //
         blur: function (e) {
             var that = this;
             e.stopPropagation();
             e.preventDefault();
             setTimeout(function () {
                 if (!that.$menu.is(':focus')) {
-                  that.hide();
+                    that.hide();
                 }
-            }, 150)
+            }, 10)
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Handles clicking on the results list
-        //
         click: function (e) {
             e.stopPropagation();
             e.preventDefault();
             this.select();
         },
 
-        //------------------------------------------------------------------
-        //
-        //  Handles the mouse entering the results list
-        //
         mouseenter: function (e) {
             this.$menu.find('.active').removeClass('active');
             $(e.currentTarget).addClass('active');
         }
     }
 
-    //------------------------------------------------------------------
-    //
-    //  Plugin definition
-    //
     $.fn.typeahead = function (option) {
         return this.each(function () {
             var $this = $(this),
@@ -538,11 +425,13 @@ function ($) {
     $.fn.typeahead.defaults = {
         source: [],
         items: 8,
-        menu: '<ul class="typeahead dropdown-menu"></ul>',
+        template: '<div class="combobox-container"><input type="text" autocomplete="off" /><input type="hidden" /><span class="add-on btn dropdown-toggle" data-dropdown="dropdown"><span class="caret"/><span class="combobox-clear"><i class="icon-remove"/></span></span></div>',
+        menu: '<ul class="typeahead typeahead-long dropdown-menu"></ul>',
+        submenu: '<li class="dropdown-submenu"><a href="#"></a><ul class="dropdown-menu"></ul></li>',
         item: '<li><a href="#"></a></li>',
         display: 'name',
         val: 'id',
-        itemSelected: function () { },
+        itemSelected: function () {},
         ajax: {
             url: null,
             timeout: 300,
@@ -560,8 +449,8 @@ function ($) {
     //------------------------------------------------------------------
     //
     //  DOM-ready call for the Data API (no-JS implementation)
-    //    
-    //  Note: As of Bootstrap v2.0 this feature may be disabled using $('body').off('.data-api')    
+    //
+    //  Note: As of Bootstrap v2.0 this feature may be disabled using $('body').off('.data-api')
     //  More info here: https://github.com/twitter/bootstrap/tree/master/js
     //
     $(function () {
@@ -577,4 +466,4 @@ function ($) {
         })
     });
 
-} (window.jQuery);
+}(window.jQuery);
