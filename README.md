@@ -8,7 +8,7 @@ type ahead feature. So i modified this plugin(A lot...) to get my functionality 
 * * *
 About
 -----------------
-All the thanks in the world to [@mdo](https://twitter.com/#!/mdo) and [@fat](https://twitter.com/#!/fat) of [@twitter](https://twitter.com/) for the wonderful Bootstrap utility.<br />
+All the thanks in the world to [@twitter](https://twitter.com/) for the wonderful Bootstrap utility.<br />
 I required more functionality out of the Typeahead plugin so I created this extension with some additional features:
 
 - A callback function is available for when an item is selected
@@ -27,9 +27,7 @@ Installation
 
 2) Download this plugin.
 
-- [ZIP](https://github.com/tcrosen/twitter-bootstrap-typeahead/zipball/master)
-- [Clone in Windows](github-windows://openRepo/https://github.com/tcrosen/twitter-bootstrap-typeahead)
-- `git clone git://github.com/tcrosen/twitter-bootstrap-typeahead.git`
+- [ZIP](https://github.com/satyasuman/twitter-bootstrap-typeahead/zipball/master)
 
 3) Include files in your HTML. The minimum required for this plugin are:
 
